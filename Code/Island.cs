@@ -4,16 +4,18 @@ using System;
 
 namespace RocketGravity.Code
 {
-    public class Island
+    public class Island : LevelObject
     {
         //public Rectangle Collider { get; private set; }
-        public Texture2D Texture { get; private set; }
+        private Texture2D texture;
         public bool IsLanded { get; set; }
         public bool IsVisited { get; set; }
 
-        public Rectangle Collider => new Rectangle(
-                (int)(position.X),
-                (int)(position.Y + Texture.Height * scale * 0.2),
+        public override Texture2D Texture => texture;
+
+        public override Rectangle Collider => new Rectangle(
+                (int)(Position.X),
+                (int)(Position.Y + Texture.Height * scale * 0.2),
                 (int)(Texture.Width * scale),
                 (int)(Texture.Height * scale * 0.8)
             );
@@ -21,34 +23,34 @@ namespace RocketGravity.Code
         public TimeSpan DetachTime { get; set; }
 
         //private Rectangle landingArea;
-        private Vector2 position;
+        //private Vector2 position;
         private float scale;
         private int number;
 
-        public Vector2 Position => position;
+        //public override Vector2 Position => position;
         public int Number => number;
 
         private Rectangle landingArea => new Rectangle(
-                (int)position.X,
-                (int)position.Y,
+                (int)Position.X,
+                (int)Position.Y,
                 (int)(Texture.Width * scale),
                 (int)(Texture.Height * scale * 0.2f)
             );
 
         public Island(Texture2D texture, Vector2 position, int number, float scale = 1.0f)
         {
-            Texture = texture;
+            this.texture = texture;
             this.number = number;
-            this.position = position;
+            this.Position = position;
             this.scale = scale;
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public override void Draw(SpriteBatch spriteBatch)
         {
             Color color = IsLanded ? Color.LightGreen : Color.White;
             spriteBatch.Draw(Texture, new Rectangle(
-                (int)(position.X),
-                (int)(position.Y),
+                (int)(Position.X),
+                (int)(Position.Y),
                 (int)(Texture.Width * scale),
                 (int)(Texture.Height * scale)), color);
 
@@ -75,13 +77,13 @@ namespace RocketGravity.Code
             return IsLanded;
         }
 
-        public bool CheckCrushing(Rocket rocket) => rocket.Collider.Intersects(Collider);
+        public override bool CheckCrushing(Rocket rocket) => rocket.Collider.Intersects(Collider);
 
         public bool AreEqual(Island island) => this.Equals(island);
         
-        public void SetPosition(Vector2 position)
-        {
-            this.position = position;
-        }
+        //public void SetPosition(Vector2 position)
+        //{
+        //    this.position = position;
+        //}
     }
 }

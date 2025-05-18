@@ -16,7 +16,7 @@ namespace RocketGravity.Code
 {
     public abstract class LevelBase
     {
-        protected static List<Island> islands = new List<Island>();
+        protected static List<LevelObject> levelObjects = new List<LevelObject>();
         protected Texture2D background;
         protected Color backgroundColor = Color.White;
         protected Texture2D rocketTexture;
@@ -25,7 +25,7 @@ namespace RocketGravity.Code
         protected Texture2D DefaultTexure;
 
         public static Rocket Rocket { get; protected set; }
-        public IEnumerable<Island> Islands => islands;
+        public List<Island> Islands => levelObjects.Where(obj => obj is Island).Select(obj => obj as Island).ToList();
         public bool IsCompleted { get; protected set; }
 
         protected Island currentIsland;
@@ -40,47 +40,48 @@ namespace RocketGravity.Code
             bool needToAdd = false;
             var currentTime = gameTime.TotalGameTime;
             var keyboardState = Keyboard.GetState();
-            foreach (var island in islands)
+            foreach (var levelObject in levelObjects)
             {
-                if (island.CheckCrushing(Rocket))
+                if (levelObject.CheckCrushing(Rocket))
                 {
                     Initialize();
                     break;
                 }
-                if (!(island.IsLanded || island.IsVisited) && island.CheckLanding(Rocket))
-                { 
-                    Rocket.IsLanded = true;
-                    island.IsVisited = true;
-                    Rocket.SetPosition(new Vector2(island.Position.X + island.Collider.Width / 2, island.Collider.Y - Rocket.Height / 2));
-                    var jumpLen = island.Number - currentIsland.Number;
-                    currentIsland = island;
-                    ScrollTo(currentIsland);
-                    needToAdd = true;
-                    var reward = jumpLen * 2 - 1;
-                    Score += reward;
-                    Rocket.AddFuel(25 + (reward - 1) * 15);
-                }
-                if (island.IsLanded)
+                if (levelObject is Island island)
                 {
-                    if (keyboardState.IsKeyDown(Keys.Space))
+                    if (!(island.IsLanded || island.IsVisited) && island.CheckLanding(Rocket))
                     {
-                        island.IsLanded = false;
-                        Rocket.IsLanded = false;
-                        island.DetachTime = currentTime;
-                        Rocket.Velocity = new Vector2(0,-150);
+                        Rocket.IsLanded = true;
+                        island.IsVisited = true;
+                        Rocket.SetPosition(new Vector2(island.Position.X + island.Collider.Width / 2, island.Collider.Y - Rocket.Height / 2));
+                        var jumpLen = island.Number - currentIsland.Number;
+                        currentIsland = island;
+                        ScrollTo(currentIsland);
+                        needToAdd = true;
+                        var reward = jumpLen * 2 - 1;
+                        Score += reward;
+                        Rocket.AddFuel(25 + (reward - 1) * 15);
                     }
-                }
-                if (island.IsVisited && currentTime - island.DetachTime >= TimeSpan.FromSeconds(5))
-                {
-                    island.IsVisited = false;
+                    if (island.IsLanded)
+                    {
+                        if (keyboardState.IsKeyDown(Keys.Space))
+                        {
+                            island.IsLanded = false;
+                            Rocket.IsLanded = false;
+                            island.DetachTime = currentTime;
+                            Rocket.Velocity = new Vector2(0, -150);
+                        }
+                    }
+                    if (island.IsVisited && currentTime - island.DetachTime >= TimeSpan.FromSeconds(5))
+                    {
+                        island.IsVisited = false;
+                    }
                 }
             }
 
             if (needToAdd)
             {
                 AddIsland();
-                if (islands.Count >= 8)
-                   islands.RemoveAt(0);
                 needToAdd = false;
             }
 
@@ -102,7 +103,7 @@ namespace RocketGravity.Code
         public virtual void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(background, new Rectangle(-500, 0, 3024, 1080), Color.White);
-            foreach (var island in islands)
+            foreach (var island in levelObjects)
             {
                 island.Draw(spriteBatch);
             }
@@ -129,7 +130,7 @@ namespace RocketGravity.Code
             var deltaY = (MainGame.screenHeight / 2 - Centre.Y) / 40;
 
             Centre += new Vector2(deltaX, deltaY);
-            foreach (var island in islands)
+            foreach (var island in levelObjects)
             {
                 island.SetPosition(new Vector2(island.Position.X - deltaX, island.Position.Y));
             }
@@ -146,38 +147,43 @@ namespace RocketGravity.Code
     public class Level1 : LevelBase
     {
         private Texture2D islandTexture;
+        private Texture2D obstacleTexture;
+        private Random random = new Random();
 
         public override void Initialize()
         {
             IsCompleted = false;
 
-            islands.Clear();
+            levelObjects.Clear();
             Score = 0;
 
             var random = new Random();
 
             // Создание островов
-            islands.Add(new Island(islandTexture, new Vector2(200, 800),0, 0.5f));
-            islands[0].IsLanded = true;
-            islands[0].IsVisited = true;
-            currentIsland = islands[0];
+            levelObjects.Add(new Island(islandTexture, new Vector2(200, 800),0, 0.5f));
+            Islands[0].IsLanded = true;
+            Islands[0].IsVisited = true;
+            currentIsland = Islands[0];
 
-            for (int i = 1; i <= 5; i++)
-            {
+            while (levelObjects.Count < 8)
                 AddIsland();
-            }
+
+            Islands[0].IsLanded = true;
+            Islands[0].IsVisited = true;
+            currentIsland = Islands[0];
 
 
             // Инициализация игрока
             Rocket = new Rocket(rocketTexture, Vector2.Zero, 100, 10);
             Rocket.SetFuel(Rocket.MaxFuel);
-            Rocket.SetPosition(new Vector2(islands[0].Collider.X + islands[0].Collider.Width / 2, islands[0].Collider.Y - Rocket.Height / 2));
+            Rocket.SetPosition(new Vector2(levelObjects[0].Collider.X + levelObjects[0].Collider.Width / 2, levelObjects[0].Collider.Y - Rocket.Height / 2));
             Rocket.IsLanded = true;
         }
 
         public override void LoadContent(ContentManager content)
         {
             islandTexture = content.Load<Texture2D>("Island");
+            obstacleTexture = content.Load<Texture2D>("Rock");
             rocketTexture = content.Load<Texture2D>("Rocket");
             spriteFont = content.Load<SpriteFont>("Font");
             background = MainGame.Background;
@@ -186,10 +192,43 @@ namespace RocketGravity.Code
 
         public override void AddIsland()
         {
-            var random = new Random();
-            var previousIsle = islands[islands.Count - 1];
-            var newposition = new Vector2(previousIsle.Collider.X + random.Next(800, 1300), random.Next(400, 900));
-            islands.Add(new Island(islandTexture, newposition, previousIsle.Number + 1, 0.5f));
+            var previous = levelObjects.LastOrDefault();
+            float baseX = previous?.Position.X ?? 200;
+
+            if (previous is Island && random.Next(100) < 30)
+            {
+                float newX = baseX + random.Next(400, 900);
+                float newY = random.Next(400, 800);
+
+                levelObjects.Add(new Obstacle(
+               obstacleTexture,
+               new Vector2(newX, newY),
+               0.5f));
+            }
+            else
+            {
+                int number = Islands.LastOrDefault()?.Number + 1 ?? 0;
+                float newX = baseX + random.Next(800, 1300);
+                float newY = random.Next(400, 900);
+
+                var island = new Island(
+                    islandTexture,
+                    new Vector2(newX, newY),
+                    number,
+                    0.5f);
+
+                levelObjects.Add(island);
+            }
+
+            while (levelObjects.Count > 8 && levelObjects[0] != currentIsland)
+            {
+                levelObjects.RemoveAt(0);
+            }
+
+
+            //var previousIsle = Islands.LastOrDefault();
+            //var newposition = new Vector2(previousIsle?.Collider.X + random.Next(800, 1300) ?? 200, random.Next(400, 900));
+            //levelObjects.Add(new Island(islandTexture, newposition, previousIsle.Number + 1, 0.5f));
         }
     }
 
