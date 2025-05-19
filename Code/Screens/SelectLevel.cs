@@ -80,6 +80,12 @@ namespace RocketGravity.Screens
                 MainGame.ChangeState(GameState.Level);
             }
 
+            if (Level3.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
+            {
+                MainGame.LevelManager.LoadLevel(content, 0);
+                MainGame.ChangeState(GameState.Level);
+            }
+
             if (Input.IsSingleKeyPress(Keys.Escape))
             {
                 MainGame.ChangeState(GameState.MainMenu);

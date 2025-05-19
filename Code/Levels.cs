@@ -40,7 +40,7 @@ namespace RocketGravity.Code
         public abstract void Initialize();
         public abstract void LoadContent(ContentManager content);
 
-        public void Update(GameTime gameTime, ref GameState gameState)
+        public virtual void Update(GameTime gameTime, ref GameState gameState)
         {
             bool needToAdd = false;
             var currentTime = gameTime.TotalGameTime;
@@ -86,7 +86,7 @@ namespace RocketGravity.Code
 
             if (needToAdd)
             {
-                AddIsland();
+                AddRandIsland();
                 needToAdd = false;
             }
 
@@ -143,7 +143,7 @@ namespace RocketGravity.Code
 
         }
 
-        public void AddIsland()
+        public void AddRandIsland()
         {
             var random = new Random();
             var previous = levelObjects.LastOrDefault();
@@ -206,7 +206,7 @@ namespace RocketGravity.Code
             Score = 0;
 
             while (levelObjects.Count < MaxObjects)
-                AddIsland();
+                AddRandIsland();
             // Инициализация игрока
             Rocket = new Rocket(rocketTexture, Vector2.Zero, 100, 10);
             Rocket.SetFuel(Rocket.MaxFuel);
@@ -236,7 +236,7 @@ namespace RocketGravity.Code
             Score = 0;
 
             while (levelObjects.Count < MaxObjects)
-                AddIsland();
+                AddRandIsland();
             // Инициализация игрока
             Rocket = new Rocket(rocketTexture, Vector2.Zero, 100, 10);
             Rocket.SetFuel(Rocket.MaxFuel);
@@ -268,9 +268,8 @@ namespace RocketGravity.Code
             levels.Add(level);
         }
 
-        public void LoadLevel(ContentManager content, int number)
+        public void LoadLevel(ContentManager content, int index)
         {
-            var index = number - 1;
             currentLevelIndex = index;
             CurrentLevel = levels[index];
             CurrentLevel.LoadContent(content);

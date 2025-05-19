@@ -4,7 +4,6 @@ using Microsoft.Xna.Framework.Input;
 using RocketGravity.Code;
 using RocketGravity.Code.Screens;
 using RocketGravity.Screens;
-using static System.Net.Mime.MediaTypeNames;
 //using System.Numerics;
 
 namespace RocketGravity;
@@ -47,6 +46,7 @@ public class MainGame : Game
         _graphics.ApplyChanges();
 
         LevelManager = new LevelManager();
+        LevelManager.AddLevel(new Tutorial());
         LevelManager.AddLevel(new Level1());
         LevelManager.AddLevel(new Level2());
 
@@ -66,20 +66,7 @@ public class MainGame : Game
         MainMenu.LoadContent(Content);
         SelectLevel.LoadContent(Content);
 
-        LevelManager.LoadNextLevel(Content);
-
-        //playerTexture = Content.Load<Texture2D>("Rocket");
-        //player = new Player(
-        //    playerTexture,
-        //    new Vector2(_graphics.PreferredBackBufferWidth / 2, _graphics.PreferredBackBufferHeight / 2),
-        //    400f,
-        //    _graphics.PreferredBackBufferWidth,
-        //    _graphics.PreferredBackBufferHeight
-        //);
-
-        //rocketTexture = Content.Load<Texture2D>("Rocket");
-        //rocket = new Rocket(rocketTexture,
-        //    new Vector2(screenWidth / 2, screenHeight / 2));
+        //LevelManager.LoadNextLevel(Content);
 
         // TODO: use this.Content to load your game content here
     }
@@ -119,13 +106,8 @@ public class MainGame : Game
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.Cyan);
-        //_spriteBatch.Begin();
-        //MainScreen.Draw(_spriteBatch);
-        //_spriteBatch.End();
 
         _spriteBatch.Begin();
-
-        //_spriteBatch.Draw(Background, new Rectangle(0, 0, 3024, 1080), Color.White);
 
         switch (currentState)
         {
@@ -154,9 +136,6 @@ public class MainGame : Game
 
     public static void ChangeState(GameState state)
     {
-        currentState = state;
-        if (state == GameState.Level)
-            LevelManager.RestartCurrentLevel();
-            
+        currentState = state;         
     }
 }
