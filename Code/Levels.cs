@@ -11,6 +11,7 @@ using Microsoft.Xna.Framework.Input;
 using System.Runtime.CompilerServices;
 using static System.Net.Mime.MediaTypeNames;
 using System.Reflection;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RocketGravity.Code
 {
@@ -21,8 +22,12 @@ namespace RocketGravity.Code
         protected Color backgroundColor = Color.White;
         protected Texture2D rocketTexture;
         protected SpriteFont spriteFont;
+        protected int Difficulty;
         protected int Score;
         protected Texture2D DefaultTexure;
+        protected Texture2D islandTexture;
+        protected Texture2D obstacleTexture;
+        protected int MaxObjects = 12;
 
         public static Rocket Rocket { get; protected set; }
         public List<Island> Islands => levelObjects.Where(obj => obj is Island).Select(obj => obj as Island).ToList();
@@ -96,8 +101,8 @@ namespace RocketGravity.Code
             Rocket.Update(gameTime);
 
             //CheckLevelCompletion();
-            if (keyboardState.IsKeyDown(Keys.Escape))
-                gameState = GameState.MainMenu;
+            if (Input.IsSingleKeyPress(Keys.Escape))
+                gameState = GameState.SelectLevel;
         }
 
         public virtual void Draw(SpriteBatch spriteBatch)
@@ -138,67 +143,29 @@ namespace RocketGravity.Code
 
         }
 
-        public abstract void AddIsland();
-
-        //protected abstract void CheckLevelCompletion();
-    }
-
-    // 2. Конкретный класс уровня (Level1.cs)
-    public class Level1 : LevelBase
-    {
-        private Texture2D islandTexture;
-        private Texture2D obstacleTexture;
-        private Random random = new Random();
-
-        public override void Initialize()
+        public void AddIsland()
         {
-            IsCompleted = false;
-
-            levelObjects.Clear();
-            Score = 0;
-
             var random = new Random();
-
-            // Создание островов
-            levelObjects.Add(new Island(islandTexture, new Vector2(200, 800),0, 0.5f));
-            Islands[0].IsLanded = true;
-            Islands[0].IsVisited = true;
-            currentIsland = Islands[0];
-
-            while (levelObjects.Count < 8)
-                AddIsland();
-
-            Islands[0].IsLanded = true;
-            Islands[0].IsVisited = true;
-            currentIsland = Islands[0];
-
-
-            // Инициализация игрока
-            Rocket = new Rocket(rocketTexture, Vector2.Zero, 100, 10);
-            Rocket.SetFuel(Rocket.MaxFuel);
-            Rocket.SetPosition(new Vector2(levelObjects[0].Collider.X + levelObjects[0].Collider.Width / 2, levelObjects[0].Collider.Y - Rocket.Height / 2));
-            Rocket.IsLanded = true;
-        }
-
-        public override void LoadContent(ContentManager content)
-        {
-            islandTexture = content.Load<Texture2D>("Island");
-            obstacleTexture = content.Load<Texture2D>("Rock");
-            rocketTexture = content.Load<Texture2D>("Rocket");
-            spriteFont = content.Load<SpriteFont>("Font");
-            background = MainGame.Background;
-            DefaultTexure = MainGame.DefaultTexture;
-        }
-
-        public override void AddIsland()
-        {
             var previous = levelObjects.LastOrDefault();
             float baseX = previous?.Position.X ?? 200;
+            if (previous == null)
+            {
+                var island = new Island(
+                islandTexture,
+                    new Vector2(baseX, random.Next(400, 900)),
+                    0,
+                    0.5f);
 
-            if (previous is Island && random.Next(100) < 30)
+                levelObjects.Add(island);
+                Islands[0].IsLanded = true;
+                Islands[0].IsVisited = true;
+                currentIsland = Islands[0];
+                return;
+            }
+            if (random.Next(100) < 20)
             {
                 float newX = baseX + random.Next(400, 900);
-                float newY = random.Next(400, 800);
+                float newY = random.Next(200, 800);
 
                 levelObjects.Add(new Obstacle(
                obstacleTexture,
@@ -220,15 +187,71 @@ namespace RocketGravity.Code
                 levelObjects.Add(island);
             }
 
-            while (levelObjects.Count > 8 && levelObjects[0] != currentIsland)
+            while (levelObjects.Count > MaxObjects && levelObjects[0] != currentIsland)
             {
                 levelObjects.RemoveAt(0);
             }
+        }
 
+        //protected abstract void CheckLevelCompletion();
+    }
+    public class Level1 : LevelBase
+    {
 
-            //var previousIsle = Islands.LastOrDefault();
-            //var newposition = new Vector2(previousIsle?.Collider.X + random.Next(800, 1300) ?? 200, random.Next(400, 900));
-            //levelObjects.Add(new Island(islandTexture, newposition, previousIsle.Number + 1, 0.5f));
+        public override void Initialize()
+        {
+            IsCompleted = false;
+
+            levelObjects.Clear();
+            Score = 0;
+
+            while (levelObjects.Count < MaxObjects)
+                AddIsland();
+            // Инициализация игрока
+            Rocket = new Rocket(rocketTexture, Vector2.Zero, 100, 10);
+            Rocket.SetFuel(Rocket.MaxFuel);
+            Rocket.SetPosition(new Vector2(Islands[0].Collider.X + Islands[0].Collider.Width / 2, Islands[0].Collider.Y - Rocket.Height / 2));
+            Rocket.IsLanded = true;
+        }
+
+        public override void LoadContent(ContentManager content)
+        {
+            islandTexture = content.Load<Texture2D>("Island");
+            obstacleTexture = content.Load<Texture2D>("Rock");
+            rocketTexture = content.Load<Texture2D>("Rocket");
+            spriteFont = content.Load<SpriteFont>("Font");
+            background = MainGame.Background;
+            DefaultTexure = MainGame.DefaultTexture;
+        }
+    }
+
+    public class Level2 : LevelBase
+    {
+
+        public override void Initialize()
+        {
+            IsCompleted = false;
+
+            levelObjects.Clear();
+            Score = 0;
+
+            while (levelObjects.Count < MaxObjects)
+                AddIsland();
+            // Инициализация игрока
+            Rocket = new Rocket(rocketTexture, Vector2.Zero, 100, 10);
+            Rocket.SetFuel(Rocket.MaxFuel);
+            Rocket.SetPosition(new Vector2(Islands[0].Collider.X + Islands[0].Collider.Width / 2, Islands[0].Collider.Y - Rocket.Height / 2));
+            Rocket.IsLanded = true;
+        }
+
+        public override void LoadContent(ContentManager content)
+        {
+            islandTexture = content.Load<Texture2D>("EarthIsland");
+            obstacleTexture = content.Load<Texture2D>("cliff");
+            rocketTexture = content.Load<Texture2D>("Rocket");
+            spriteFont = content.Load<SpriteFont>("Font");
+            background = content.Load<Texture2D>("backgroundEarth");
+            DefaultTexure = MainGame.DefaultTexture;
         }
     }
 
@@ -243,6 +266,15 @@ namespace RocketGravity.Code
         public void AddLevel(LevelBase level)
         {
             levels.Add(level);
+        }
+
+        public void LoadLevel(ContentManager content, int number)
+        {
+            var index = number - 1;
+            currentLevelIndex = index;
+            CurrentLevel = levels[index];
+            CurrentLevel.LoadContent(content);
+            CurrentLevel.Initialize();
         }
 
         public void LoadNextLevel(ContentManager content)

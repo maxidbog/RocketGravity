@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Content;
+using RocketGravity.Code;
 
 namespace RocketGravity.Screens
 {
@@ -59,20 +60,27 @@ namespace RocketGravity.Screens
             //Первый уровень
             DrawTile(_spriteBatch, Level1, "Марс", 1);
 
-            DrawTile(_spriteBatch, Level2, "Земля (Скоро)", 3);
+            DrawTile(_spriteBatch, Level2, "Земля", 3);
 
             DrawTile(_spriteBatch, Level3, "Венера (Скоро)", 5);
 
         }
 
-        static public void Update(MouseState mouseState)
+        static public void Update(MouseState mouseState, ContentManager content)
         {
             if (Level1.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
             {
-                MainGame.ChangeState(GameState.Level_1);
+                MainGame.LevelManager.LoadLevel(content, 1);
+                MainGame.ChangeState(GameState.Level);
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+            if (Level2.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
+            {
+                MainGame.LevelManager.LoadLevel(content, 2);
+                MainGame.ChangeState(GameState.Level);
+            }
+
+            if (Input.IsSingleKeyPress(Keys.Escape))
             {
                 MainGame.ChangeState(GameState.MainMenu);
             }

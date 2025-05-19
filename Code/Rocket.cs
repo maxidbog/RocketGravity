@@ -109,9 +109,6 @@ public class Rocket
             rotation = 0f;
             Velocity = new Vector2(0,0);
         }
-
-        if (keyboardState.IsKeyDown(Keys.Escape))
-            MainGame.ChangeState(GameState.MainMenu);
     }
 
     public void Draw(SpriteBatch spriteBatch)

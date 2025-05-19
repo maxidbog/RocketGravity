@@ -9,7 +9,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace RocketGravity;
 
-public enum GameState { Exit, MainMenu, About, SelectLevel, Playing, Level_1}
+public enum GameState { Exit, MainMenu, About, SelectLevel, Playing, Level}
 
 
 public class MainGame : Game
@@ -19,8 +19,6 @@ public class MainGame : Game
 
     public static SpriteFont MainFont;
     public static GameState currentState = GameState.MainMenu;
-
-    private Rocket rocket;
     public static Texture2D rocketTexture;
     public static Texture2D Background;
     public static Texture2D Gradient;
@@ -30,7 +28,7 @@ public class MainGame : Game
     public static int screenWidth;
     public static int screenHeight;
 
-    private static LevelManager levelManager;
+    public static LevelManager LevelManager;
 
     public MainGame()
     {
@@ -48,8 +46,9 @@ public class MainGame : Game
         Window.IsBorderless = true;
         _graphics.ApplyChanges();
 
-        levelManager = new LevelManager();
-        levelManager.AddLevel(new Level1());
+        LevelManager = new LevelManager();
+        LevelManager.AddLevel(new Level1());
+        LevelManager.AddLevel(new Level2());
 
         MainMenu.Initialize();
 
@@ -67,7 +66,7 @@ public class MainGame : Game
         MainMenu.LoadContent(Content);
         SelectLevel.LoadContent(Content);
 
-        levelManager.LoadNextLevel(Content);
+        LevelManager.LoadNextLevel(Content);
 
         //playerTexture = Content.Load<Texture2D>("Rocket");
         //player = new Player(
@@ -90,6 +89,7 @@ public class MainGame : Game
         //if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape) && currentState == GameState.MainMenu)
         //    Exit();
 
+        Input.Update();
         MouseState mouseState = Mouse.GetState();
 
         switch(currentState)
@@ -104,14 +104,10 @@ public class MainGame : Game
                 AboutScreen.Update(ref currentState, mouseState);
                 break;
             case GameState.SelectLevel:
-                SelectLevel.Update(mouseState);
+                SelectLevel.Update(mouseState, Content);
                 break;
-            case GameState.Playing:
-                //player.Update(gameTime, ref currentState);
-                rocket.Update(gameTime);
-                break;
-            case GameState.Level_1:
-                levelManager.CurrentLevel.Update(gameTime,ref currentState);
+            case GameState.Level:
+                LevelManager.CurrentLevel.Update(gameTime,ref currentState);
                 break;
         }
 
@@ -142,13 +138,10 @@ public class MainGame : Game
             case GameState.SelectLevel:
                 SelectLevel.Draw(_spriteBatch);
                 break;
-            case GameState.Playing:
-                //player.Draw(_spriteBatch);
-                rocket.Draw(_spriteBatch);
+            case GameState.Level:
+                LevelManager.CurrentLevel.Draw(_spriteBatch);
                 break;
-            case GameState.Level_1:
-                levelManager.CurrentLevel.Draw(_spriteBatch);
-                break;
+
         }
 
 
@@ -162,8 +155,8 @@ public class MainGame : Game
     public static void ChangeState(GameState state)
     {
         currentState = state;
-        if (state == GameState.Level_1)
-            levelManager.RestartCurrentLevel();
+        if (state == GameState.Level)
+            LevelManager.RestartCurrentLevel();
             
     }
 }
