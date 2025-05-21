@@ -16,7 +16,7 @@ namespace RocketGravity.Code
         private class TutorialStep
         {
             public string Text { get; }
-            public Func<bool> IsCompleted { get; }
+            public Func<bool> IsCompleted { get; set; }
             public Vector2 Position { get; }
             public bool IsActive { get; set; }
 
@@ -32,7 +32,7 @@ namespace RocketGravity.Code
         private List<TutorialStep> tutorialSteps;
         private int currentStepIndex;
         private float messageTimer;
-        private const float MessageDuration = 3f;
+        private const float MessageDuration = 2f;
         public override void Draw(SpriteBatch spriteBatch)
         {
             base.Draw(spriteBatch);
@@ -55,9 +55,14 @@ namespace RocketGravity.Code
             if (currentStepIndex >= 0 && currentStepIndex < tutorialSteps.Count)
             {
                 var currentStep = tutorialSteps[currentStepIndex];
-                if (currentStep.IsCompleted())
+                if (currentStep.IsCompleted() && currentStep.IsActive)
                 {
                     currentStep.IsActive = false;
+                    currentStep.IsCompleted = () => true;
+                    messageTimer = MessageDuration;
+                }
+                if (currentStep.IsCompleted() && messageTimer <= 0)
+                {
                     ActivateNextStep();
                 }
             }
@@ -149,7 +154,7 @@ namespace RocketGravity.Code
         private void DrawStepMessage(SpriteBatch spriteBatch, TutorialStep step)
         {
             //float alpha = MathHelper.Clamp(messageTimer * 2f, 0f, 1f);
-            Color textColor = Color.White;
+            Color textColor = step.IsCompleted() ? Color.LightGreen : Color.White;
 
             spriteBatch.DrawString(
                 spriteFont,
