@@ -13,11 +13,14 @@ namespace RocketGravity.Code
 
         public override Texture2D Texture => texture;
 
+        private int width = 300;
+        private int Height => (int)(texture.Height * width / texture.Width);
+
         public override Rectangle Collider => new Rectangle(
                 (int)(Position.X),
-                (int)(Position.Y + Texture.Height * scale * 0.2),
-                (int)(Texture.Width * scale),
-                (int)(Texture.Height * scale * 0.8)
+                (int)(Position.Y + Height * scale * 0.2),
+                (int)(width * scale),
+                (int)(Height * scale * 0.8)
             );
 
         public TimeSpan DetachTime { get; set; }
@@ -25,19 +28,19 @@ namespace RocketGravity.Code
         //private Rectangle landingArea;
         //private Vector2 position;
         private float scale;
-        private int number;
+        private float number;
 
         //public override Vector2 Position => position;
-        public int Number => number;
+        public override float Number => number;
 
         private Rectangle landingArea => new Rectangle(
                 (int)Position.X,
                 (int)Position.Y,
-                (int)(Texture.Width * scale),
-                (int)(Texture.Height * scale * 0.2f)
+                (int)(width * scale),
+                (int)(Height * scale * 0.2f)
             );
 
-        public Island(Texture2D texture, Vector2 position, int number, float scale = 1.0f)
+        public Island(Texture2D texture, Vector2 position, float number, float scale = 1.0f)
         {
             this.texture = texture;
             this.number = number;
@@ -51,8 +54,8 @@ namespace RocketGravity.Code
             spriteBatch.Draw(Texture, new Rectangle(
                 (int)(Position.X),
                 (int)(Position.Y),
-                (int)(Texture.Width * scale),
-                (int)(Texture.Height * scale)), color);
+                (int)(width * scale),
+                (int)(Height * scale)), color);
 
             // Для отладки: отображение зоны приземления
             //spriteBatch.Draw(Texture, landingArea, Color.Green * 0.8f);

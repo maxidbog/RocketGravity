@@ -63,6 +63,7 @@ namespace RocketGravity.Screens
             Level1Image = content.Load<Texture2D>("MarsImage");
             TutorialImage = Level1Image;
             Level2Image = content.Load<Texture2D>("EarthImage");
+            Level3Image = content.Load<Texture2D>("JupiterImage");
         }
 
         static public void Draw(SpriteBatch _spriteBatch)
@@ -104,8 +105,8 @@ namespace RocketGravity.Screens
 
             if (Level3.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
             {
-                //MainGame.LevelManager.LoadLevel(content, 0);
-                //MainGame.ChangeState(GameState.Level);
+                MainGame.LevelManager.LoadLevel(content, 3);
+                MainGame.ChangeState(GameState.Level);
             }
 
             if (Input.IsSingleKeyPress(Keys.Escape))

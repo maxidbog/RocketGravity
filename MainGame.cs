@@ -49,6 +49,7 @@ public class MainGame : Game
         LevelManager.AddLevel(new Tutorial());
         LevelManager.AddLevel(new Level1());
         LevelManager.AddLevel(new Level2());
+        LevelManager.AddLevel(new Level3());
 
         MainMenu.Initialize();
 

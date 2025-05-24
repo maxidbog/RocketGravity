@@ -71,21 +71,23 @@ namespace RocketGravity.Code
         {
             IsCompleted = false;
 
-            levelObjects.Clear();
             currentStepIndex = -1;
             Score = 0;
-
-            levelObjects.Add(new Island(islandTexture,
-                    new Vector2(200, 800),
-                    0,
-                    0.5f));
-            levelObjects.Add(new Island(islandTexture,
-                    new Vector2(800, 600),
-                    1,
-                    0.5f));
-            levelObjects.Add(new Obstacle(obstacleTexture,
-                    new Vector2(1500, 300),
-                    0.5f));
+            levelObjects = new List<LevelObject> 
+            {
+                new Island(islandTexture,
+                        new Vector2(200, 800),
+                        0,
+                        1f),
+                new Island(islandTexture,
+                        new Vector2(800, 600),
+                        1,
+                        1f),
+                new Obstacle(obstacleTexture,
+                        new Vector2(1500, 300),
+                        2,
+                        1f)
+                };
 
             Islands[0].IsLanded = true;
             Islands[0].IsVisited = true;
@@ -93,12 +95,8 @@ namespace RocketGravity.Code
 
             while (levelObjects.Count < MaxObjects)
                 AddRandIsland();
-            // Инициализация игрока
-            Rocket = new Rocket(rocketTexture, Vector2.Zero, 100, 10);
-            Rocket.SetFuel(Rocket.MaxFuel);
-            Rocket.SetPosition(new Vector2(Islands[0].Collider.X + Islands[0].Collider.Width / 2, Islands[0].Collider.Y - Rocket.Height / 2));
-            Rocket.IsLanded = true;
-
+            
+            InitializeRocket();
             InitializeTutorialSteps();
             ActivateNextStep();
         }
@@ -135,7 +133,12 @@ namespace RocketGravity.Code
 
             new TutorialStep("избегай препятствий!",
                 () => Score > 2,
-                new Vector2(MainGame.screenWidth - 600, 100))
+                new Vector2(MainGame.screenWidth - 600, 100)),
+
+            new TutorialStep("Набери как можно больше очков!\n" +
+                            "                          \"Esc\" для выхода",
+                () => false,
+                new Vector2(MainGame.screenWidth - 850, 100))
         };
         }
 

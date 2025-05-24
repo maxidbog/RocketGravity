@@ -17,6 +17,8 @@ namespace RocketGravity.Code
         public abstract bool CheckCrushing(Rocket rocket);
         public virtual void Update(GameTime gameTime) { }
 
+        public abstract float Number { get; }
+
         public void SetPosition(Vector2 position)
         {
             this.Position = position;

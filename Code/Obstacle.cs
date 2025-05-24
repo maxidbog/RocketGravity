@@ -1,10 +1,5 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RocketGravity.Code
 {
@@ -12,16 +7,22 @@ namespace RocketGravity.Code
     {
         private Texture2D texture;
         private float scale;
+        private float number;
+
+        private int width = 200;
+        private int height => (int)(texture.Height * width / texture.Width);
 
         public override Texture2D Texture => texture;
+        public override float Number => number;
         public override Rectangle Collider =>  new Rectangle(
             (int)Position.X,
             (int)Position.Y,
-            (int)(texture.Width * scale),
-            (int)(texture.Height * scale));
+            (int)(width * scale),
+            (int)(height * scale));
 
-        public Obstacle(Texture2D texture, Vector2 position, float scale)
+        public Obstacle(Texture2D texture, Vector2 position, float number, float scale)
         {
+            this.number = number;
             this.texture = texture;
             this.Position = position;
             this.scale = scale;

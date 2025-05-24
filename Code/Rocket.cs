@@ -11,7 +11,6 @@ public class Rocket
     private Texture2D texture;
     private Vector2 position;
     public Vector2 Velocity { get; set; }
-    private Vector2 gravity = (new Vector2(0, 1)) * 30f;
     private float rotation;
     private float thrust;
     private float fuel;
@@ -64,7 +63,7 @@ public class Rocket
             this.fuel = maxFuel;
     }
 
-    public void Update(GameTime gameTime)
+    public void Update(GameTime gameTime, Vector2 gravity)
     {
         var keyboardState = Keyboard.GetState();
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
