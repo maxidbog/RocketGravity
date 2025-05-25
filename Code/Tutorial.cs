@@ -90,7 +90,6 @@ namespace RocketGravity.Code
                 };
 
             Islands[0].IsLanded = true;
-            Islands[0].IsVisited = true;
             currentIsland = Islands[0];
 
             while (levelObjects.Count < MaxObjects)

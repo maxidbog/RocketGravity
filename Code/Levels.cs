@@ -1,17 +1,10 @@
 ﻿using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
-using RocketGravity.Screens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Input;
-using System.Runtime.CompilerServices;
-using static System.Net.Mime.MediaTypeNames;
-using System.Reflection;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RocketGravity.Code
 {
@@ -37,6 +30,9 @@ namespace RocketGravity.Code
 
         protected Island currentIsland;
         protected static Vector2 Centre = new Vector2(MainGame.screenWidth/2, MainGame.screenHeight/2);
+
+        // Configuration
+        private const int obstacleChance = 30;
 
 
         public virtual void Initialize()
@@ -76,26 +72,12 @@ namespace RocketGravity.Code
                 {
                     if (!(island.IsLanded || island.IsVisited) && island.CheckLanding(Rocket))
                     {
-                        Rocket.IsLanded = true;
-                        island.IsVisited = true;
-                        Rocket.SetPosition(new Vector2(island.Position.X + island.Collider.Width / 2, island.Collider.Y - Rocket.Height / 2));
-                        var jumpLen = island.Number - currentIsland.Number;
-                        currentIsland = island;
-                        ScrollTo(currentIsland);
+                        LandingUpdate(island);
                         needToAdd = true;
-                        var reward = (int)(jumpLen * 2) - 1;
-                        Score += reward;
-                        Rocket.AddFuel((25 + (reward - 1) * 15) * (float)Math.Pow(1.04, Difficulty));
                     }
-                    if (island.IsLanded)
+                    if (island.IsLanded && keyboardState.IsKeyDown(Keys.Space))
                     {
-                        if (keyboardState.IsKeyDown(Keys.Space))
-                        {
-                            island.IsLanded = false;
-                            Rocket.IsLanded = false;
-                            island.DetachTime = currentTime;
-                            Rocket.Velocity = new Vector2(0, -150);
-                        }
+                        DetachRocket(currentTime, island);
                     }
                     if (island.IsVisited && currentTime - island.DetachTime >= TimeSpan.FromSeconds(5))
                     {
@@ -111,7 +93,6 @@ namespace RocketGravity.Code
             if (needToAdd)
             {
                 AddRandIsland();
-                needToAdd = false;
             }
 
             if (Rocket.Position.X + 600 >= MainGame.screenWidth)
@@ -120,13 +101,35 @@ namespace RocketGravity.Code
             if (Rocket.Position.X <= 100)
                 Centre += new Vector2(2, 0);
 
-            Scroll();
+            if (Rocket.Position.Y >= MainGame.screenHeight)
+                Initialize();
 
+            Scroll();
             Rocket.Update(gameTime, currentGravity);
 
-            //CheckLevelCompletion();
             if (Input.IsSingleKeyPress(Keys.Escape))
                 gameState = GameState.SelectLevel;
+        }
+
+        private static void DetachRocket(TimeSpan currentTime, Island island)
+        {
+            island.IsLanded = false;
+            Rocket.IsLanded = false;
+            island.DetachTime = currentTime;
+            Rocket.Velocity = new Vector2(0, -150);
+        }
+
+        private void LandingUpdate(Island island)
+        {
+            Rocket.IsLanded = true;
+            island.IsVisited = true;
+            Rocket.SetPosition(new Vector2(island.Position.X + island.Collider.Width / 2, island.Collider.Y - Rocket.Height / 2));
+            var jumpLen = island.Number - currentIsland.Number;
+            currentIsland = island;
+            ScrollTo(currentIsland);
+            var reward = (int)(jumpLen * 2) - 1;
+            Score += reward < 0 ? 0 : reward;
+            Rocket.AddFuel((25 + (reward - 1) * 15) * (float)Math.Pow(1.04, Difficulty));
         }
 
         public virtual void Draw(SpriteBatch spriteBatch)
@@ -171,68 +174,64 @@ namespace RocketGravity.Code
         {
             var random = new Random();
             var previous = levelObjects.LastOrDefault();
-            //if (previous == null)
-            //{
-            //    var island = new Island(
-            //    islandTexture,
-            //        new Vector2(200, random.Next(400, 900)),
-            //        0,
-            //        0.5f);
-
-            //    levelObjects.Add(island);
-            //    Islands[0].IsLanded = true;
-            //    Islands[0].IsVisited = true;
-            //    currentIsland = Islands[0];
-            //    return;
-            //}
 
             float baseX = previous.Position.X + Difficulty * 30;
             float number = previous.Number + 1;
-            int obstacleChance = random.Next(100);
+            int obstacleRandom = random.Next(100);
             var difficultyMultiplyer = 1 + Difficulty / 10 ;
 
-            if (((previous is not Obstacle && previous is not BlackHole) && obstacleChance < 30 + Difficulty * 5) || obstacleChance < 10 + Difficulty * 2)
+            if (((previous is not Obstacle && previous is not BlackHole) && obstacleRandom < obstacleChance + Difficulty * 5) || obstacleRandom < 10 + Difficulty * 2)
             {
-                float newX = baseX + random.Next(400, 900) * difficultyMultiplyer;
-                float newY = random.Next(200, 700);
-                if (random.Next(100) < 40 && Difficulty > 3)
-                {
-                    levelObjects.Add(new BlackHole(
-                           blackHoleTexture,
-                           new Vector2(newX, newY),
-                           number,
-                           1f,
-                           200f));
-                }
-                else
-                {
-                    number -= 0.5f;
-
-                    levelObjects.Add(new Obstacle(
-                           obstacleTexture,
-                           new Vector2(newX, newY),
-                           number,
-                           1f));
-                }
+                AddNewObstacle(random, baseX, number, difficultyMultiplyer);
             }
             else
             {
-                float newX = baseX + random.Next(800, 1300) * difficultyMultiplyer;
-                float newY = random.Next(400, 800);
-
-                var island = new Island(
-                    islandTexture,
-                    new Vector2(newX, newY),
-                    number,
-                    1f);
-
-                levelObjects.Add(island);
+                AddNewIsland(random, baseX, number, difficultyMultiplyer);
             }
 
             while (levelObjects.Count > MaxObjects && levelObjects[0] != currentIsland)
             {
                 levelObjects.RemoveAt(0);
             }
+        }
+
+        private void AddNewObstacle(Random random, float baseX, float number, int difficultyMultiplyer)
+        {
+            float newX = baseX + random.Next(400, 900) * difficultyMultiplyer;
+            float newY = random.Next(200, 700);
+            if (random.Next(100) < 40 && Difficulty > 3)
+            {
+                levelObjects.Add(new BlackHole(
+                       blackHoleTexture,
+                       new Vector2(newX, newY),
+                       number,
+                       1f,
+                       200f));
+            }
+            else
+            {
+                number -= 0.5f;
+
+                levelObjects.Add(new Obstacle(
+                       obstacleTexture,
+                       new Vector2(newX, newY),
+                       number,
+                       1f));
+            }
+        }
+
+        private void AddNewIsland(Random random, float baseX, float number, int difficultyMultiplyer)
+        {
+            float newX = baseX + random.Next(800, 1300) * difficultyMultiplyer;
+            float newY = random.Next(400, 800);
+
+            var island = new Island(
+                islandTexture,
+                new Vector2(newX, newY),
+                number,
+                1f);
+
+            levelObjects.Add(island);
         }
 
         public void InitializeRocket()
@@ -243,7 +242,6 @@ namespace RocketGravity.Code
             Rocket.IsLanded = true;
         }
 
-        //protected abstract void CheckLevelCompletion();
     }
     public class Level1 : LevelBase
     {
@@ -270,6 +268,7 @@ namespace RocketGravity.Code
         public override void Initialize()
         {
             Difficulty = 3;
+            gravity = (new Vector2(0, 1)) * 40f;
             base.Initialize();
         }
 
@@ -291,6 +290,7 @@ namespace RocketGravity.Code
         public override void Initialize()
         {
             Difficulty = 5;
+            gravity = (new Vector2(0, 1)) * 50f;
             base.Initialize();
         }
 
@@ -306,7 +306,7 @@ namespace RocketGravity.Code
         }
     }
 
-    // 3. Менеджер уровней
+    // Менеджер уровней
     public class LevelManager
     {
         private List<LevelBase> levels = new List<LevelBase>();

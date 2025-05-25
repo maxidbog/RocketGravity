@@ -73,13 +73,13 @@ namespace RocketGravity.Screens
             //_spriteBatch.Draw(TileTexture, new Rectangle(200, 300, 500, 400), new Color(255, 255, 255, 200));
 
             //Первый уровень
-            DrawTile(_spriteBatch, TutorialTile, TutorialImage, "Обучение", 1);
+            DrawTile(_spriteBatch, TutorialTile, TutorialImage, "Обучение", 0);
 
             DrawTile(_spriteBatch, Level1, Level1Image, "Марс", 1);
 
             DrawTile(_spriteBatch, Level2, Level2Image, "Земля", 3);
 
-            DrawTile(_spriteBatch, Level3, Level3Image, "Венера (Скоро)", 5);
+            DrawTile(_spriteBatch, Level3, Level3Image, "Юпитер", 5);
 
         }
 
